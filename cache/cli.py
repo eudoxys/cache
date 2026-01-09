@@ -1,6 +1,4 @@
-"""Cache manager CLI
-
-"""
+"""Cache manager CLI"""
 
 import os
 import sys
@@ -125,7 +123,7 @@ def main(*args:list[str],**kwargs:dict[str,str]) -> int:
         if getattr(args,"debug"):
             raise
 
-        print(f"ERROR [loads]: {err}")
+        print(f"ERROR [cache]: {err}")
         return E_FAILED
 
 if __name__ == "__main__":
