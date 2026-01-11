@@ -6,7 +6,8 @@ can be cleared using the command
 
     cache clear
 
-# Example
+Example
+-------
 
     from cache import Cache
     import pandas as pd
@@ -41,13 +42,14 @@ class Cache:
         ):
         """Construct a cache file handler
 
-        # Arguments
+        Arguments
+        ---------
 
-        - `path`: cache file tree path
+          - `path`: cache file tree path
 
-        - `package`: cache package name (default is `"cache"`)
+          - `package`: cache package name (default is `"cache"`)
 
-        - `version`: cache version number (default `0`)
+          - `version`: cache version number (default `0`)
         """
 
         # check path
@@ -81,15 +83,17 @@ class Cache:
     def open(self,mode="r",encoding="utf-8"):
         """Open cache file
 
-        # Arguments
+        Arguments
+        ---------
 
-        - `mode`: file open mode (see `open`)
+          - `mode`: file open mode (see `open`)
 
-        - `encoding`: file encoding (see `open`)
+          - `encoding`: file encoding (see `open`)
 
-        # Returns
+        Returns
+        -------
 
-        - `io.IOBase`: file handle
+          - `io.IOBase`: file handle
         """
         assert isinstance(mode,str), f"{mode=} must be a string"
         assert isinstance(encoding,str), f"{encoding=} must be a string"
@@ -98,22 +102,20 @@ class Cache:
     def exists(self):
         """Tests for existence of cache file
 
-        # Returns
+        Returns
+        -------
 
-        - `bool`: `True` if file exists, otherwise `False
+          - `bool`: `True` if file exists, otherwise `False
         """
         return os.path.exists(self.pathname)
 
     def delete(self,ignore_errors:bool=True):
         """Delete the cache file
 
-        # Arguments
+        Arguments
+        ---------
 
-        - `ignore_errors`: enables ignoring of `FileNotFoundError` exceptions
-
-        # Exceptions
-
-        - `FileNotFoundError`: the cache file was not found
+          - `ignore_errors`: enables ignoring of `FileNotFoundError` exceptions
         """
         assert isinstance(ignore_errors,bool), f"{ignore_errors=} must be a Boolean value"
         try:
@@ -130,15 +132,16 @@ class Cache:
         ):
         """@private Backup a cache to file
         
-        # Arguments
+        Arguments
+        ---------
 
-        - `file`: the filename 
+          - `file`: the filename 
 
-        - `path`: the cache path to backup
+          - `path`: the cache path to backup
 
-        - `package`: the package from which cache is being backed u
+          - `package`: the package from which cache is being backed u
 
-        - `version`: the version of the cache data to backup
+          - `version`: the version of the cache data to backup
         """
         raise NotImplementedError("TODO")
 
@@ -147,9 +150,10 @@ class Cache:
         ):
         """@private Restore a backup of cache 
 
-        # Arguments
+        Arguments
+        ---------
 
-        - `file`: the backup file to restore from
+          - `file`: the backup file to restore from
         """
         raise NotImplementedError("TODO")
 
@@ -168,11 +172,12 @@ class Cache:
         ):
         """Clears the cache at the specified level
 
-        # Arguments
+        Arguments
+        ---------
 
-        - `path`: specifies the path to clear, e.g., `["CA","Alameda"]`
+          - `path`: specifies the path to clear, e.g., `["CA","Alameda"]`
 
-        - `clear_ro`: enable clearing of read-only files
+          - `clear_ro`: enable clearing of read-only files
         """
         if path is None:
             path = []
@@ -192,9 +197,9 @@ class Cache:
 def cache_clear(path=None):
     """Clear cache files
 
-    # Argument
+    Arguments
 
-    - `path`: the path to clear, e.g., `["CA","Alameda"]`
+      - `path`: the path to clear, e.g., `["CA","Alameda"]`
     """
     Cache.clear(path)
 

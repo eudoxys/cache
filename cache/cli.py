@@ -19,13 +19,15 @@ E_SYNTAX = 2
 def main(*args:list[str],**kwargs:dict[str,str]) -> int:
     """Cache manager main command line processor
 
-    # Argument
+    Arguments
+    ---------
 
-    - `*args`: command line arguments (`None` is `sys.argv`)
+      - `*args`: command line arguments (`None` is `sys.argv`)
 
-    # Returns
+    Returns
+    -------
 
-    - `int`: return/exit code
+      - `int`: return/exit code
     """
     try:
 
