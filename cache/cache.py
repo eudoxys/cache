@@ -56,6 +56,12 @@ class Cache:
         assert isinstance(package,str), f"{package=} must be a string"
         assert isinstance(version,(int,str,float)), f"{version=} must be a string or number"
 
+        self.package = package
+        """Package name"""
+
+        self.version = version
+        """Cache schema version number"""
+
         if isinstance(path,str):
             path = [path]
         elif isinstance(path,list):
@@ -161,7 +167,7 @@ class Cache:
         return self.pathname
 
     def __repr__(self):
-        return f"Cache(path={self.path})"
+        return f"Cache(package='{self.package}',version={self.version},path={self.path})"
 
     @classmethod
     def clear(cls,
