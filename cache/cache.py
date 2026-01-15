@@ -23,6 +23,9 @@ import os
 import stat
 import warnings
 import shutil
+import logging
+
+_logger = logging.getLogger(__file__)
 
 PACKAGE = "cache"
 """Default package name (root of cache file tree)"""
@@ -84,6 +87,7 @@ class Cache:
         """Specifies the folder name of the cache file
         """
 
+        _logger.debug(f"Cache({package=},{version=},{path=}) --> '{self.pathname}'")
         os.makedirs(self.dirname,exist_ok=True)
 
     def open(self,mode="r",encoding="utf-8"):
@@ -126,9 +130,11 @@ class Cache:
         assert isinstance(ignore_errors,bool), f"{ignore_errors=} must be a Boolean value"
         try:
             os.remove(self.pathname)
+            _logger.debug(f"deleted {cache=}")
         except FileNotFoundError:
             if not ignore_errors:
                 raise
+            _logger.debug(f"deleted {cache=} file not found")
 
     def backup(self,
         file="cache.zip",
@@ -149,6 +155,7 @@ class Cache:
 
           - `version`: the version of the cache data to backup
         """
+        _logger.error(f"backup {cache=} not implemented")
         raise NotImplementedError("TODO")
 
     def restore(self,
@@ -161,6 +168,7 @@ class Cache:
 
           - `file`: the backup file to restore from
         """
+        _logger.error(f"restore {cache=} not implemented")
         raise NotImplementedError("TODO")
 
     def __str__(self):
@@ -194,11 +202,13 @@ class Cache:
         def rm_ro(remove_call,path,_):
             os.chmod(path,stat.S_IWRITE)
             remove_call(path)
+            _logger.debug(f"cleared read-only file {path=}")
         shutil.rmtree(
             path=os.path.join(cls.CACHEDIR,*path),
             ignore_errors=True,
             onexc=rm_ro if clear_ro else None,
             )
+        _logger.debug(f"cleared {cache=}")
 
 def cache_clear(path=None):
     """Clear cache files
@@ -211,10 +221,6 @@ def cache_clear(path=None):
 
 if __name__ == "__main__":
 
+    logging.basicConfig(level=logging.DEBUG)
     cache = Cache(["TEST","Test county","test name.csv"])
-    print(cache.pathname)
-    print(cache.dirname)
-    print(cache.name)
-    print(f"{cache=}")
-    print(f"{cache}")
     Cache.clear()
