@@ -56,8 +56,8 @@ class Cache:
         """
 
         # check path
-        assert isinstance(package,str), f"{package=} must be a string"
-        assert isinstance(version,(int,str,float)), f"{version=} must be a string or number"
+        assert isinstance(package,str) or package is None, f"{package=} must be a string"
+        assert package is None or isinstance(version,(int,str,float,type(None))), f"{version=} must be a string or number"
 
         self.package = package
         """Package name"""
@@ -70,7 +70,10 @@ class Cache:
         elif isinstance(path,list):
             path = [str(x) for x in path]
 
-        self.root = os.path.join(self.CACHEDIR,package,str(version))
+        if package is None:
+            self.root = self.CACHEDIR
+        else:
+            self.root = os.path.join(self.CACHEDIR,package,str(version))
         """Specifies the root folder of the cache, which includes the package
         name and the version number
         """
@@ -89,6 +92,29 @@ class Cache:
 
         _logger.debug(f"Cache({package=},{version=},{path=}) --> '{self.pathname}'")
         os.makedirs(self.dirname,exist_ok=True)
+
+    @classmethod
+    def cachedir(cls,*args,makedirs=True):
+        """Get/set cache directory
+
+        Arguments
+        ---------
+
+          - `*args`: path to directory
+
+        Returns
+        -------
+
+          - `path`: path to directory if `*args` is empty, path to old
+            directory if `*args` is not empty
+        """
+        if not args:
+            return cls.CACHEDIR
+        olddir = cls.CACHEDIR
+        cls.CACHEDIR = os.path.join(*args)
+        if makedirs:
+            os.makedirs(cls.CACHEDIR,exist_ok=True)
+        return olddir
 
     def open(self,mode="r",encoding="utf-8"):
         """Open cache file

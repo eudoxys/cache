@@ -3,8 +3,8 @@
 Syntax
 ------
 
-    cache {clear,size} [--package PACKAGE] [--version VERSION] 
-          [-P|--path PATH] [-C|--cachedir CACHEDIR] 
+    cache {clear,size,backup,restore} [--package PACKAGE] [--version VERSION] 
+          [-P|--path PATH] [-C|--cachedir CACHEDIR] [-f|--filename FILENAME]
           [-h] [-w|--warning] [-d|--debug] 
 
 Commands
@@ -13,6 +13,10 @@ Commands
   - `clear`: clear the specified `PATH` in the `CACHEDIR`
 
   - `size`: shows the disk usage of the specified `PATH` in the `CACHEDIR`
+
+  - `backup`: backup the specified cache to `FILENAME` `tar` file
+
+  - `restore`: restore the specified cache from `FILENAME` `tar` file
 
 Options
 -------
@@ -47,6 +51,9 @@ The cache folder hierarchy is as follows
   - `path`: the path is an arbitrarily deep folder tree to store the file. The
     last element the path is the `name.ext`, which specifies the name and
     extension and indicates the cache file's name and type, respectively.
+
+When using `backup` and `restore`, the `tar` file will be compressed if
+`FILENAME` ends with `.gz`.
 
 Package information
 -------------------

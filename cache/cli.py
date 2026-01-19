@@ -45,26 +45,28 @@ def main(*args:list[str],**kwargs:dict[str,str]) -> int:
             )
 
         parser.add_argument("command",
-            choices=["clear","size"]
+            choices=["clear","size","backup","restore"]
             )
-        parser.add_argument("--package",
-            default="cache",
-            help="package name")
-        parser.add_argument("--version",
-            default="0",
-            help="version number")
         parser.add_argument("-C","--cachedir",
-            default=Cache.CACHEDIR,
+            default=Cache.cachedir(),
             help="cache working folder")
-        parser.add_argument("-P","--path",
-            default="",
-            help="cache path to clear")
-        parser.add_argument("-w","--warning",
-            action="store_true",
-            help="enable warning messages from python")
         parser.add_argument("-d","--debug",
             action="store_true",
             help="enable debug traceback on exceptions")
+        parser.add_argument("-f","--filename",
+            default="cache.tar",
+            help="backup/restore filename")
+        parser.add_argument("--package",
+            help="package name")
+        parser.add_argument("-P","--path",
+            default="",
+            help="cache path to clear")
+        parser.add_argument("--version",
+            default="0",
+            help="version number")
+        parser.add_argument("-w","--warning",
+            action="store_true",
+            help="enable warning messages from python")
 
         # parse arguments
         args = parser.parse_args()
@@ -78,6 +80,9 @@ def main(*args:list[str],**kwargs:dict[str,str]) -> int:
                 file=sys.stderr,
                 )
 
+        # set cachedir
+        Cache.cachedir(args.cachedir)
+
         match args.command:
 
             case "clear":
@@ -86,7 +91,6 @@ def main(*args:list[str],**kwargs:dict[str,str]) -> int:
                 return E_OK
 
             case "size":
-                Cache.CACHEDIR = args.cachedir
                 cache = Cache(
                     path=args.path.split("/"),
                     package=args.package,
@@ -103,15 +107,21 @@ def main(*args:list[str],**kwargs:dict[str,str]) -> int:
                     size = f"{size/1e9:.3f} GB"
                 else:
                     size = f"{size/1e12:.3f} TB"
-                print(cache.pathname.replace(Cache.CACHEDIR,"~"),size)
+                print(cache.pathname.replace(Cache.cachedir(),"~"),size)
 
-            case "viewer":
+            case "backup":
 
-                return os.system(f"marimo run {os.path.join(os.path.dirname(__file__),'viewer.py')}")
+                if args.filename.endswith(".gz"):
+                    return os.system(f"tar cfz {args.filename} -C {Cache.cachedir()} .")
+                else:
+                    return os.system(f"tar cf {args.filename} -C {Cache.cachedir()} .")
 
-            case "test":
+            case "restore":
 
-                return os.system(f"python3 {os.path.join(os.path.dirname(__file__),'tests.py')}")
+                if args.filename.endswith(".gz"):
+                    return os.system(f"tar xfz {args.filename} -C {Cache.cachedir()}")
+                else:
+                    return os.system(f"tar xf {args.filename} -C {Cache.cachedir()}")
 
             case "_":
 
