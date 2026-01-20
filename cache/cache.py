@@ -156,11 +156,11 @@ class Cache:
         assert isinstance(ignore_errors,bool), f"{ignore_errors=} must be a Boolean value"
         try:
             os.remove(self.pathname)
-            _logger.debug(f"deleted {cache=}")
+            _logger.debug(f"deleted {repr(self.pathname)}")
         except FileNotFoundError:
             if not ignore_errors:
                 raise
-            _logger.debug(f"deleted {cache=} file not found")
+            _logger.debug(f"deleted {repr(self.pathname)} file not found")
 
     def backup(self,
         file="cache.zip",
@@ -181,7 +181,7 @@ class Cache:
 
           - `version`: the version of the cache data to backup
         """
-        _logger.error(f"backup {cache=} not implemented")
+        _logger.error(f"backup {repr(self.pathname)} not implemented")
         raise NotImplementedError("TODO")
 
     def restore(self,
@@ -194,7 +194,7 @@ class Cache:
 
           - `file`: the backup file to restore from
         """
-        _logger.error(f"restore {cache=} not implemented")
+        _logger.error(f"restore {repr(self.pathname)} not implemented")
         raise NotImplementedError("TODO")
 
     def __str__(self):
@@ -234,7 +234,7 @@ class Cache:
             ignore_errors=True,
             onexc=rm_ro if clear_ro else None,
             )
-        _logger.debug(f"cleared {cache=}")
+        _logger.debug(f"cleared {repr(cls.CACHEDIR)}")
 
 def cache_clear(path=None):
     """Clear cache files
