@@ -39,3 +39,9 @@ Issues = "https://github.com/eudoxys/cache/issues"
 
 [project.scripts]
 cache = "cache.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["cache/_test"]
+markers = [
+    "network: tests that download from the WECC archive",
+    ]
