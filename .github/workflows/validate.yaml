@@ -1,0 +1,52 @@
+name: Validation
+
+# Run only when code, test data, or dependencies change
+on:
+  push:
+    branches: [ main ]
+    paths: &paths
+      - "cache/**"
+      - "!**/*.md"
+      - "requirements.txt"
+      - "pyproject.toml"
+      - ".github/workflows/validate.yaml"
+  pull_request:
+    branches: [ main ]
+    paths: *paths
+  workflow_dispatch:
+
+# A newer push to the same branch/PR cancels the run in progress
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15 # hard stop on a hung download
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12" # must satisfy requires-python
+        cache: pip
+        cache-dependency-path: requirements.txt
+
+    - name: Install packages
+      run: |
+        pip install --upgrade pip
+        pip install . pytest pylint   # non-editable: catches missing package-data
+
+    - name: Analyse code
+      run: |
+        cd cache
+        pylint --fail-under 0 *.py
+
+    - name: Run tests
+      # tests use a temporary cache folder; one test (network marker)
+      # downloads a small file from the WECC archive
+      run: |
+        pytest --durations=10
