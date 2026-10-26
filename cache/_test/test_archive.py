@@ -3,6 +3,7 @@
 # pylint: disable=redefined-outer-name,unused-argument # pytest fixtures
 
 import os
+import gzip
 import pathlib
 
 import pytest
@@ -40,6 +41,20 @@ def test_open_downloads(archive):
         assert fh.read() == "a,b\n1,2\n"
     assert os.path.exists(cache.pathname)
     assert not [x for x in os.listdir(cache.dirname) if x.startswith(".download-")]
+
+def test_open_binary(archive):
+    """open() supports binary modes, including for archived files"""
+    data = gzip.compress(b"a,b\n1,2\n",mtime=0)
+    (archive / "pkg" / "ST" / "County_Name" / "data.csv.gz").write_bytes(data)
+    cache = Cache(["ST","County Name","data.csv.gz"],package="pkg")
+    with cache.open("rb") as fh:
+        assert fh.read() == data
+    with cache.open("rb",encoding="utf-8") as fh:
+        assert gzip.decompress(fh.read()) == b"a,b\n1,2\n"
+    with cache.open("wb") as fh:
+        fh.write(b"\x00\x01")
+    with cache.open("rb",encoding=None) as fh:
+        assert fh.read() == b"\x00\x01"
 
 def test_missing_everywhere(archive):
     """exists() is False and open() raises when no archive has the file"""

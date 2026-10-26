@@ -194,17 +194,30 @@ class Cache:
         Arguments
         ---------
 
-          - `mode`: file open mode (see `open`)
+          - `mode`: file open mode (see `open`); include `"b"` for binary
+            files, e.g., `"rb"` for `.csv.gz` files
 
-          - `encoding`: file encoding (see `open`)
+          - `encoding`: file encoding for text modes (see `open`); ignored in
+            binary modes
 
         Returns
         -------
 
-          - `io.IOBase`: file handle
+          - `io.IOBase`: file handle (binary when `mode` includes `"b"`)
+
+        Example
+        -------
+
+            import gzip
+            import pandas as pd
+            cache = Cache(["AZ","Apache","W_2018.csv.gz"],package="weather")
+            with cache.open("rb") as fh:
+                data = pd.read_csv(gzip.open(fh),index_col=[0],parse_dates=[0])
         """
         assert isinstance(mode,str), f"{mode=} must be a string"
-        assert isinstance(encoding,str), f"{encoding=} must be a string"
+        assert isinstance(encoding,(str,type(None))), f"{encoding=} must be a string or None"
+        if "b" in mode:
+            encoding = None
         if mode[:1] not in "wx" and not os.path.exists(self.pathname):
             self.download()
         return open(self.pathname,mode,encoding=encoding)
