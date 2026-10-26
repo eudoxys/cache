@@ -77,13 +77,24 @@ def test_archive_scan_order(archive,tmp_path,monkeypatch):
     assert cache.exists()
     assert cache.archive.startswith(archive.as_uri())
 
-def test_version_field(archive,monkeypatch):
-    """The {version} field is available to archive templates"""
-    (archive / "pkg" / "3").mkdir()
-    (archive / "pkg" / "3" / "v.csv").write_text("x\n")
+def test_version_not_searched(archive):
+    """Archives are searched without the version; downloads go to the version folder"""
+    for version in [0,2,"1.5"]:
+        cache = Cache(["ST","County Name","data.csv"],package="pkg",version=version)
+        assert cache.exists()
+        assert "/pkg/ST/County_Name/data.csv" in cache.archive
+        assert str(version) not in cache.archive.split("/pkg/",1)[1]
+        assert cache.download()
+        assert cache.pathname == os.path.join(Cache.cachedir(),"pkg",str(version),
+            "ST","County_Name","data.csv")
+        with open(cache.pathname,encoding="utf-8") as fh:
+            assert fh.read() == "a,b\n1,2\n"
+
+def test_version_field_rejected(archive,monkeypatch):
+    """Archive templates cannot use a {version} field"""
     monkeypatch.setattr(cachemod,"ARCHIVES",[archive.as_uri() + "/{package}/{version}/{path}"])
-    assert Cache(["v.csv"],package="pkg",version=3).exists()
-    assert not Cache(["v.csv"],package="pkg",version=2).exists()
+    with pytest.raises(KeyError):
+        Cache(["ST","County Name","data.csv"],package="pkg").exists()
 
 def test_no_archives(archive,monkeypatch):
     """An empty ARCHIVES list disables archive lookup"""
@@ -99,9 +110,11 @@ def test_wecc_archive(tmp_path):
     """A file in the WECC archive is found and downloaded"""
     olddir = Cache.cachedir(str(tmp_path))
     try:
-        cache = Cache(["AZ","Apache","W_2018.csv.gz"],package="weather")
+        cache = Cache(["AZ","Apache","W_2018.csv.gz"],package="weather",version=7)
         assert cache.exists()
+        assert cache.archive.endswith("/wecc/weather/AZ/Apache/W_2018.csv.gz")
         assert cache.download()
+        assert os.path.exists(os.path.join(str(tmp_path),"weather","7","AZ","Apache","W_2018.csv.gz"))
         with open(cache.pathname,"rb") as fh:
             assert fh.read(2) == b"\x1f\x8b" # gzip magic number
         assert not Cache(["AZ","Apache","nonexistent.csv"],package="weather").exists()

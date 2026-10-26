@@ -27,9 +27,13 @@ template whose fields are filled from the cache entry:
 
   - `{package}`: the cache package name
 
-  - `{version}`: the cache schema version
-
   - `{path}`: the cache path joined with `/` (URL-quoted)
+
+Archives are not versioned: an archive is assumed to always hold the latest
+version of each cache file, so the cache `version` is not used to search an
+archive. A file downloaded from an archive is stored in the cache folder of
+the requested version, i.e., at `pathname`, which is
+`CACHEDIR/package/version/path`.
 
 The default archive is the Eudoxys WECC data archive
 (https://github.com/eudoxys/wecc), which stores files as
@@ -37,7 +41,9 @@ The default archive is the Eudoxys WECC data archive
 
     Cache(["AZ","Apache","C.csv.gz"],package="loads")
 
-is found in the archive at `wecc/loads/AZ/Apache/C.csv.gz`.
+is found in the archive at `wecc/loads/AZ/Apache/C.csv.gz` and downloaded to
+`CACHEDIR/loads/0/AZ/Apache/C.csv.gz`. The same archive file is used for
+`version=2`, and is then stored in `CACHEDIR/loads/2/AZ/Apache/C.csv.gz`.
 
 If the file exists in an archive, `exists()` returns `True` without
 downloading it, and `open()` downloads it into the cache folder (at
@@ -56,8 +62,9 @@ Caveats
     `pathname` exists yet; call `open()` (or `download()`) before reading
     `pathname` directly.
 
-  - The WECC archive is not versioned, so `{version}` is not part of its
-    template; an archived file is used for any cache `version`.
+  - Because archives hold only the latest version, a package that reads an
+    older cache `version` gets the latest archived file stored under that
+    older version's folder. Packages should request the current version.
 
   - Network errors are treated as "not in this archive" and logged at DEBUG,
     so the cache works offline.
@@ -85,8 +92,9 @@ ARCHIVES = [
     "https://raw.githubusercontent.com/eudoxys/wecc/main/wecc/{package}/{path}",
     ]
 """List of cache archive URL templates, scanned in order when a cache file
-does not exist locally (see Archives above). The fields `{package}`,
-`{version}`, and `{path}` are filled from the cache entry.
+does not exist locally (see Archives above). The fields `{package}` and
+`{path}` are filled from the cache entry. Archives are searched without the
+cache version because they always hold the latest version of each file.
 """
 
 ARCHIVE_TIMEOUT = 10
@@ -215,7 +223,9 @@ class Cache:
     def download(self):
         """Download the cache file from the first archive that has it
 
-        Does nothing if the file already exists in the cache folder.
+        The archived file (always the latest version) is stored in the cache
+        folder of this entry's version, at `pathname`. Does nothing if the
+        file already exists there.
 
         Returns
         -------
@@ -246,14 +256,17 @@ class Cache:
         return True
 
     def _urls(self):
-        """@private Generate the candidate archive URLs for this cache file"""
+        """@private Generate the candidate archive URLs for this cache file
+
+        Archives always hold the latest version of a file, so the cache
+        version is not part of the archive URL.
+        """
         if self.package is None:
             return
         path = "/".join(urllib.parse.quote(x) for x in self.path)
         for archive in ARCHIVES:
             yield archive.format(
                 package=urllib.parse.quote(self.package),
-                version=urllib.parse.quote(str(self.version)),
                 path=path,
                 )
 
